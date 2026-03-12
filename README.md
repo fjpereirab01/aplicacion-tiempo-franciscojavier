@@ -417,16 +417,10 @@ docker-compose up -d --build
 
 ## Conclusión
 
-La aplicación cumple con todos los requisitos de la práctica:
+El desarrollo de esta aplicación ha permitido poner en práctica de forma integrada los conocimientos adquiridos a lo largo del ciclo ASIR2, abarcando desde la programación web hasta la administración de sistemas en la nube.
 
-- Búsqueda de ciudades con selección múltiple cuando hay varias ciudades con el mismo nombre
-- Consulta del tiempo actual, por horas y semanal usando la API de OpenWeatherMap
-- Almacenamiento de todas las consultas en una base de datos MariaDB usando el patrón DAO
-- Gráfica de temperaturas semanales con Chart.js
-- Historial de todas las consultas realizadas
-- Despliegue en AWS EC2 con Docker accesible desde internet mediante HTTPS
-- Arquitectura MVC para una mejor organización del código
-- Dominio gratuito con DuckDNS y certificado SSL con Let's Encrypt
+A nivel de desarrollo, se ha implementado una arquitectura **MVC** en PHP puro que separa claramente la lógica de negocio, el acceso a datos y la presentación, siguiendo buenas prácticas de programación. La integración con la **API de OpenWeatherMap** ha permitido trabajar con peticiones HTTP externas y el procesamiento de respuestas en formato JSON, almacenándolas en una base de datos **MariaDB** mediante el patrón **DAO**.
 
-**URL de acceso:** https://fjpereirab.duckdns.org  
-**Repositorio GitHub:** https://github.com/fjpereirab01/aplicacion-tiempo-franciscojavier
+A nivel de infraestructura, el proyecto se ha desplegado completamente en **AWS EC2** utilizando **Docker Compose** para orquestar cuatro contenedores (PHP, MariaDB, Nginx y Certbot), lo que garantiza un entorno reproducible e independiente del sistema operativo del servidor. La configuración de **Nginx** como proxy inverso junto con el certificado **SSL gratuito** de Let's Encrypt mediante **DuckDNS** ha permitido que la aplicación sea accesible desde internet de forma segura a través de HTTPS.
+
+En definitiva, el resultado es una aplicación web funcional, segura y desplegada en producción real, accesible en [https://fjpereirab.duckdns.org](https://fjpereirab.duckdns.org).
