@@ -1,51 +1,74 @@
-# Aplicacion del Tiempo - Francisco Javier
+# Aplicación del Tiempo - Francisco Javier
 
-Aplicacion web desarrollada en PHP que permite consultar el tiempo atmosferico de cualquier ciudad del mundo utilizando la API de OpenWeatherMap. Desplegada en AWS con Docker y accesible desde internet mediante HTTPS.
+Aplicación web desarrollada en PHP que permite consultar el tiempo atmosférico de cualquier ciudad del mundo utilizando la API de OpenWeatherMap. Desplegada en AWS con Docker y accesible desde internet mediante HTTPS.
 
 **URL de acceso:** https://fjpereirab.duckdns.org  
 **Repositorio:** https://github.com/fjpereirab01/aplicacion-tiempo-franciscojavier
 
 ---
 
-## Introduccion
+## Índice
 
-Esta aplicacion ha sido desarrollada como practica de la asignatura IAPLW del ciclo ASIR2. El objetivo es crear una aplicacion web en PHP que consulte datos meteorologicos a traves de una API externa, los almacene en una base de datos MariaDB y los muestre al usuario de forma clara.
+- [Introducción](#introducción)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Explicación de archivos](#explicación-de-archivos)
+  - [Dockerfile](#dockerfile)
+  - [docker-compose.yml](#docker-composeyml)
+  - [sql/init.sql](#sqlinitsql)
+  - [src/configuracion/config.php](#srcconfiguracionconfigphp)
+  - [src/modelos/Modelo.php](#srcmodelosmodelophp)
+  - [src/controladores/TiempoControlador.php](#srccontroladorestiempocontroladorphp)
+  - [src/vistas/paginas.php](#srcvistaspaginasphp)
+  - [src/vistas/vistas.php](#srcvistasvistasphp)
+  - [src/index.php](#srcindexphp)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Instalación en local](#instalación-en-local)
+- [Comprobación](#comprobación)
+- [Conclusión](#conclusión)
 
-La aplicacion sigue el patron de diseno **MVC (Modelo Vista Controlador)**, separando la logica de negocio, el acceso a datos y la presentacion en capas independientes. El despliegue se realiza mediante **Docker** en una instancia **EC2 de AWS**, con **Nginx** como proxy inverso y certificado **SSL gratuito** obtenido con Certbot y DuckDNS.
+---
+
+## Introducción
+
+Esta aplicación ha sido desarrollada como práctica de la asignatura IAPLW del ciclo ASIR2. El objetivo es crear una aplicación web en PHP que consulte datos meteorológicos a través de una API externa, los almacene en una base de datos MariaDB y los muestre al usuario de forma clara.
+
+La aplicación sigue el patrón de diseño **MVC (Modelo Vista Controlador)**, separando la lógica de negocio, el acceso a datos y la presentación en capas independientes. El despliegue se realiza mediante **Docker** en una instancia **EC2 de AWS**, con **Nginx** como proxy inverso y certificado **SSL gratuito** obtenido con Certbot y DuckDNS.
 
 ---
 
 ## Estructura del proyecto
+
 ```
 aplicacion_tiempo/
 ├── Dockerfile                  # Imagen Docker de PHP + Apache
-├── docker-compose.yml          # Orquestacion de contenedores
+├── docker-compose.yml          # Orquestación de contenedores
 ├── apache/
-│   └── 000-default.conf        # Configuracion de Apache
+│   └── 000-default.conf        # Configuración de Apache
 ├── nginx/
-│   └── nginx.conf              # Configuracion de Nginx (proxy inverso + HTTPS)
+│   └── nginx.conf              # Configuración de Nginx (proxy inverso + HTTPS)
 ├── sql/
-│   └── init.sql                # Script de creacion de la base de datos
-├── imagenes/                   # Capturas de pantalla de la aplicacion
+│   └── init.sql                # Script de creación de la base de datos
+├── imagenes/                   # Capturas de pantalla de la aplicación
 └── src/
-    ├── index.php               # Punto de entrada de la aplicacion
+    ├── index.php               # Punto de entrada de la aplicación
     ├── configuracion/
-    │   └── config.php          # API key y configuracion de la base de datos
+    │   └── config.php          # API key y configuración de la base de datos
     ├── modelos/
     │   └── Modelo.php          # Acceso a la base de datos (ciudades y consultas)
     ├── controladores/
-    │   └── TiempoControlador.php # Logica de negocio y llamadas a la API
+    │   └── TiempoControlador.php # Lógica de negocio y llamadas a la API
     └── vistas/
         ├── paginas.php         # Enrutador de vistas
-        └── vistas.php          # Todas las paginas HTML de la aplicacion
+        └── vistas.php          # Todas las páginas HTML de la aplicación
 ```
 
 ---
 
-## Explicacion de archivos
+## Explicación de archivos
 
 ### Dockerfile
 Define la imagen Docker que se usa para el contenedor PHP + Apache.
+
 ```dockerfile
 FROM php:8.2-apache
 # Imagen base oficial de PHP 8.2 con Apache incluido
@@ -54,19 +77,19 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    # Instalamos las dependencias necesarias para trabajar con imagenes
+    # Instalamos las dependencias necesarias para trabajar con imágenes
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql mysqli
     # Instalamos extensiones PHP:
-    # - gd: para generar graficas
+    # - gd: para generar gráficas
     # - pdo, pdo_mysql: para conectar con MariaDB usando PDO
-    # - mysqli: conexion alternativa con MariaDB
+    # - mysqli: conexión alternativa con MariaDB
 
 RUN a2enmod rewrite
-# Activamos el modulo rewrite de Apache para permitir redirecciones
+# Activamos el módulo rewrite de Apache para permitir redirecciones
 
 COPY apache/000-default.conf /etc/apache2/sites-enabled/000-default.conf
-# Copiamos nuestra configuracion personalizada de Apache
+# Copiamos nuestra configuración personalizada de Apache
 
 EXPOSE 80
 # El contenedor escucha en el puerto 80
@@ -75,7 +98,8 @@ EXPOSE 80
 ---
 
 ### docker-compose.yml
-Orquesta los cuatro contenedores de la aplicacion.
+Orquesta los cuatro contenedores de la aplicación.
+
 ```yaml
 services:
   php:
@@ -84,7 +108,7 @@ services:
     container_name: aplicacion_tiempo
     volumes:
       - ./src:/var/www/html
-      # Monta la carpeta src como raiz del servidor web
+      # Monta la carpeta src como raíz del servidor web
     depends_on:
       - db
       # Espera a que la base de datos arranque primero
@@ -97,10 +121,10 @@ services:
 
   db:
     image: mariadb:10.11
-    # Imagen oficial de MariaDB version 10.11
+    # Imagen oficial de MariaDB versión 10.11
     container_name: base_datos_tiempo
     restart: always
-    # Se reinicia automaticamente si falla
+    # Se reinicia automáticamente si falla
     volumes:
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
       # Script SQL que se ejecuta al crear la base de datos
@@ -119,7 +143,7 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       # Certificados SSL generados por Certbot
       - ./certbot/www:/var/www/certbot
-      # Directorio de verificacion de Certbot
+      # Directorio de verificación de Certbot
 
   certbot:
     image: certbot/certbot
@@ -132,21 +156,22 @@ services:
 ---
 
 ### sql/init.sql
-Script SQL que crea las tablas de la base de datos automaticamente al arrancar el contenedor.
+Script SQL que crea las tablas de la base de datos automáticamente al arrancar el contenedor.
+
 ```sql
 USE weatherapp;
 
 -- Tabla ciudades: guarda las ciudades buscadas
 CREATE TABLE IF NOT EXISTS ciudades (
-    id INT AUTO_INCREMENT PRIMARY KEY,  -- Identificador unico
+    id INT AUTO_INCREMENT PRIMARY KEY,  -- Identificador único
     nombre VARCHAR(100) NOT NULL,       -- Nombre de la ciudad
-    pais VARCHAR(10) NOT NULL,          -- Codigo del pais (ej: ES)
+    pais VARCHAR(10) NOT NULL,          -- Código del país (ej: ES)
     lat DECIMAL(9,6) NOT NULL,          -- Latitud
     lon DECIMAL(9,6) NOT NULL,          -- Longitud
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Fecha de busqueda
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Fecha de búsqueda
 );
 
--- Tabla consultas: guarda cada consulta meteorologica
+-- Tabla consultas: guarda cada consulta meteorológica
 CREATE TABLE IF NOT EXISTS consultas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     ciudad_id INT NOT NULL,             -- Ciudad consultada
@@ -160,7 +185,8 @@ CREATE TABLE IF NOT EXISTS consultas (
 ---
 
 ### src/configuracion/config.php
-Contiene la API key de OpenWeatherMap y la configuracion de conexion a la base de datos.
+Contiene la API key de OpenWeatherMap y la configuración de conexión a la base de datos.
+
 ```php
 define('API_KEY', 'TU_API_KEY');
 // Clave de acceso a la API de OpenWeatherMap
@@ -186,14 +212,15 @@ define('DB_PASS', getenv('DB_PASS') ?: 'weatherpass');
 
 ### src/modelos/Modelo.php
 Clase DAO que gestiona todas las operaciones con la base de datos.
+
 ```php
 class Modelo {
     private $conexion;
-    // Conexion PDO con la base de datos
+    // Conexión PDO con la base de datos
 
     public function __construct() {
         $this->conexion = new PDO(...);
-        // Establece la conexion al instanciar la clase
+        // Establece la conexión al instanciar la clase
     }
 
     public function guardarCiudad($ciudad) {
@@ -203,7 +230,7 @@ class Modelo {
     }
 
     public function guardarConsulta($ciudadId, $tipo, $respuestaJson) {
-        // Inserta una nueva consulta meteorologica en la BD
+        // Inserta una nueva consulta meteorológica en la BD
         // Guarda el JSON completo de la respuesta de la API
     }
 
@@ -217,16 +244,17 @@ class Modelo {
 ---
 
 ### src/controladores/TiempoControlador.php
-Controlador principal que gestiona la logica de negocio y las llamadas a la API.
+Controlador principal que gestiona la lógica de negocio y las llamadas a la API.
+
 ```php
 class TiempoControlador {
     private $modelo;
     // Instancia del modelo para acceder a la base de datos
 
     public function buscarCiudades($nombreCiudad) {
-        // Llama a la API de geocodificacion de OpenWeatherMap
+        // Llama a la API de geocodificación de OpenWeatherMap
         // Devuelve hasta 5 ciudades con ese nombre
-        // Traduce los codigos de pais al español
+        // Traduce los códigos de país al español
     }
 
     public function guardarCiudad($ciudad) {
@@ -241,13 +269,13 @@ class TiempoControlador {
 
     public function obtenerPrevisionHoras($ciudadId, $lat, $lon) {
         // Llama al endpoint /data/2.5/forecast con cnt=8
-        // Devuelve previsiones cada 3 horas para el dia actual
+        // Devuelve previsiones cada 3 horas para el día actual
     }
 
     public function obtenerPrevisionSemanal($ciudadId, $lat, $lon) {
         // Llama al endpoint /data/2.5/forecast
-        // Agrupa los datos por dia calculando maximas y minimas
-        // Traduce los dias de la semana al español
+        // Agrupa los datos por día calculando máximas y mínimas
+        // Traduce los días de la semana al español
     }
 
     public function obtenerHistorial() {
@@ -255,7 +283,7 @@ class TiempoControlador {
     }
 
     private function llamarApi($url) {
-        // Metodo privado que hace las peticiones HTTP a la API
+        // Método privado que hace las peticiones HTTP a la API
         // Usa file_get_contents con un timeout de 10 segundos
     }
 }
@@ -264,39 +292,41 @@ class TiempoControlador {
 ---
 
 ### src/vistas/paginas.php
-Enrutador de vistas. Recibe el parametro `vista` de la URL y llama a la funcion correspondiente.
+Enrutador de vistas. Recibe el parámetro `vista` de la URL y llama a la función correspondiente.
+
 ```php
 $vista = $_GET['vista'] ?? 'actual';
-// Lee el parametro vista de la URL
+// Lee el parámetro vista de la URL
 
 switch ($vista) {
-    case 'actual':  vistaActual($ciudad, $datos);  break;
-    case 'horas':   vistaHoras($ciudad, $datos);   break;
-    case 'semana':  vistaSemana($ciudad, $datos);  break;
-    case 'historial': vistaHistorial($datos);      break;
+    case 'actual':    vistaActual($ciudad, $datos);   break;
+    case 'horas':     vistaHoras($ciudad, $datos);    break;
+    case 'semana':    vistaSemana($ciudad, $datos);   break;
+    case 'historial': vistaHistorial($datos);         break;
 }
-// Segun el valor del parametro muestra una pagina u otra
+// Según el valor del parámetro muestra una página u otra
 ```
 
 ---
 
 ### src/vistas/vistas.php
-Contiene todas las funciones de presentacion HTML de la aplicacion.
+Contiene todas las funciones de presentación HTML de la aplicación.
+
 ```php
 function mostrarCabecera($titulo) { ... }
-// Genera el HTML comun de todas las paginas (head, estilos, header)
+// Genera el HTML común de todas las páginas (head, estilos, header)
 
 function mostrarPiePagina() { ... }
 // Cierra las etiquetas HTML
 
 function vistaActual($ciudad, $datos) { ... }
-// Muestra los datos meteorologicos actuales en una tabla
+// Muestra los datos meteorológicos actuales en una tabla
 
 function vistaHoras($ciudad, $horas) { ... }
-// Muestra la prevision por horas en una tabla
+// Muestra la previsión por horas en una tabla
 
 function vistaSemana($ciudad, $dias) { ... }
-// Muestra la prevision semanal en una tabla con grafica de temperaturas
+// Muestra la previsión semanal en una tabla con gráfica de temperaturas
 
 function vistaHistorial($consultas) { ... }
 // Muestra todas las consultas realizadas con badges de colores
@@ -305,40 +335,41 @@ function vistaHistorial($consultas) { ... }
 ---
 
 ### src/index.php
-Punto de entrada de la aplicacion. Gestiona el formulario de busqueda y la sesion del usuario.
+Punto de entrada de la aplicación. Gestiona el formulario de búsqueda y la sesión del usuario.
+
 ```php
 session_start();
-// Inicia la sesion para guardar los datos de la ciudad seleccionada
+// Inicia la sesión para guardar los datos de la ciudad seleccionada
 
 // Si el usuario selecciona una ciudad de la lista:
-// - Guarda los datos en sesion
-// - Redirige con header() para evitar reenvio del formulario
+// - Guarda los datos en sesión
+// - Redirige con header() para evitar reenvío del formulario
 
-// Si el formulario se envia:
+// Si el formulario se envía:
 // - Llama al controlador para buscar ciudades
-// - Si hay una sola ciudad la selecciona automaticamente
+// - Si hay una sola ciudad la selecciona automáticamente
 // - Si hay varias muestra una lista para que el usuario elija
 // - Si no se encuentra muestra un mensaje de error
 ```
 
 ---
 
-## Tecnologias utilizadas
+## Tecnologías utilizadas
 
-- **PHP 8.2** con Apache — backend y logica de la aplicacion
+- **PHP 8.2** con Apache — backend y lógica de la aplicación
 - **MariaDB 10.11** — base de datos para guardar ciudades y consultas
 - **Docker + Docker Compose** — contenedores para el despliegue
 - **Nginx** — proxy inverso con soporte HTTPS
 - **Certbot + Let's Encrypt** — certificado SSL gratuito
 - **DuckDNS** — dominio gratuito para acceso desde internet
 - **AWS EC2 t3.micro** — servidor en la nube
-- **OpenWeatherMap API** — datos meteorologicos
-- **Chart.js** — grafica de temperaturas semanales
-- **Patron MVC** — arquitectura de la aplicacion
+- **OpenWeatherMap API** — datos meteorológicos
+- **Chart.js** — gráfica de temperaturas semanales
+- **Patrón MVC** — arquitectura de la aplicación
 
 ---
 
-## Instalacion en local
+## Instalación en local
 
 1. Clona el repositorio:
 ```bash
@@ -346,7 +377,7 @@ git clone https://github.com/fjpereirab01/aplicacion-tiempo-franciscojavier.git
 cd aplicacion-tiempo-franciscojavier
 ```
 
-2. Copia el archivo de configuracion y añade tu API key:
+2. Copia el archivo de configuración y añade tu API key:
 ```bash
 cp src/configuracion/config.example.php src/configuracion/config.php
 ```
@@ -362,39 +393,39 @@ docker-compose up -d --build
 
 ---
 
-## Comprobacion
+## Comprobación
 
-### Pagina principal
-![Pagina principal](imagenes/captura_entrada.png)
+### Página principal
+![Página principal](imagenes/captura_entrada.png)
 
-### Seleccion de ciudad
-![Seleccion de ciudad](imagenes/opciones.png)
+### Selección de ciudad
+![Selección de ciudad](imagenes/opciones.png)
 
 ### Tiempo actual
 ![Tiempo actual](imagenes/tiempo_actual.png)
 
-### Prevision por horas
-![Prevision por horas](imagenes/prevision_horas.png)
+### Previsión por horas
+![Previsión por horas](imagenes/prevision_horas.png)
 
-### Prevision semanal con grafica
-![Prevision semanal](imagenes/prevision_semanal.png)
+### Previsión semanal con gráfica
+![Previsión semanal](imagenes/prevision_semanal.png)
 
 ### Historial de consultas
 ![Historial](imagenes/historial.png)
 
 ---
 
-## Conclusion
+## Conclusión
 
-La aplicacion cumple con todos los requisitos de la practica:
+La aplicación cumple con todos los requisitos de la práctica:
 
-- Busqueda de ciudades con seleccion multiple cuando hay varias ciudades con el mismo nombre
+- Búsqueda de ciudades con selección múltiple cuando hay varias ciudades con el mismo nombre
 - Consulta del tiempo actual, por horas y semanal usando la API de OpenWeatherMap
-- Almacenamiento de todas las consultas en una base de datos MariaDB usando el patron DAO
-- Grafica de temperaturas semanales con Chart.js
+- Almacenamiento de todas las consultas en una base de datos MariaDB usando el patrón DAO
+- Gráfica de temperaturas semanales con Chart.js
 - Historial de todas las consultas realizadas
 - Despliegue en AWS EC2 con Docker accesible desde internet mediante HTTPS
-- Arquitectura MVC para una mejor organizacion del codigo
+- Arquitectura MVC para una mejor organización del código
 - Dominio gratuito con DuckDNS y certificado SSL con Let's Encrypt
 
 **URL de acceso:** https://fjpereirab.duckdns.org  
