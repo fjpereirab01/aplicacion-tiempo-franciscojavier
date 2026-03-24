@@ -5,6 +5,7 @@ services:
   php:
     build: .
     container_name: aplicacion_tiempo
+    restart: always
     volumes:
       - ./src:/var/www/html
       - ./apache/000-default.conf:/etc/apache2/sites-enabled/000-default.conf
